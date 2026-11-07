@@ -1,6 +1,5 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file.
-// They control the widget preview in the app.
 const DEFAULT_SHIFT = "16:20";
 
 function parseShift(value) {
@@ -19,54 +18,78 @@ function format(minutes) {
 }
 
 function bioMinutes(shiftStart) {
-  // Use Beijing wall-clock time regardless of the iPhone timezone.
+  // Beijing wall-clock time, independent of the iPhone timezone.
   const beijing = new Date(Date.now() + 8 * 60 * 60 * 1000);
   const actual = beijing.getUTCHours() * 60 + beijing.getUTCMinutes();
   return actual + 8 * 60 - shiftStart;
 }
 
-function serif(size) {
+function clockFont(size) {
   try {
-    const font = Font.name("New York", size);
+    const font = Font.name("HelveticaNeue-CondensedBold", size);
     if (font) return font;
   } catch (error) {}
-  return Font.systemFont(size);
+  return Font.boldSystemFont(size * 0.88);
+}
+
+function drawClock(size, time) {
+  const ctx = new DrawContext();
+  ctx.size = new Size(size.width, size.height);
+  ctx.opaque = true;
+  ctx.respectScreenScale = true;
+
+  const paper = new Color("#F2ECE2");
+  const ink = new Color("#1F1C18");
+  const tick = new Color("#6F6559", 0.34);
+  const tickMajor = new Color("#6F6559", 0.58);
+
+  ctx.setFillColor(paper);
+  ctx.fillRect(new Rect(0, 0, size.width, size.height));
+
+  const inset = size.width < 200 ? 9 : 12;
+  const perEdge = size.width < 200 ? 18 : 30;
+  const innerW = size.width - inset * 2;
+  const innerH = size.height - inset * 2;
+
+  function tickMark(x, y, w, h, major) {
+    ctx.setFillColor(major ? tickMajor : tick);
+    ctx.fillRect(new Rect(x, y, w, h));
+  }
+
+  for (let i = 0; i < perEdge; i++) {
+    const major = i % 5 === 0;
+    const length = major ? 6 : 3;
+    const thickness = major ? 1.8 : 1.2;
+    const fx = inset + ((i + 0.5) / perEdge) * innerW;
+    const fy = inset + ((i + 0.5) / perEdge) * innerH;
+    tickMark(fx - thickness / 2, inset, thickness, length, major);                       // top
+    tickMark(fx - thickness / 2, size.height - inset - length, thickness, length, major); // bottom
+    tickMark(inset, fy - thickness / 2, length, thickness, major);                       // left
+    tickMark(size.width - inset - length, fy - thickness / 2, length, thickness, major); // right
+  }
+
+  const fontSize = size.width < 200 ? 52 : size.width > 300 && size.height > 300 ? 112 : 78;
+  ctx.setFont(clockFont(fontSize));
+  ctx.setTextColor(ink);
+  ctx.setTextAlignedCenter();
+  ctx.drawTextInRect(time, new Rect(0, 0, size.width, size.height));
+
+  return ctx.getImage();
 }
 
 const shiftStart = parseShift(args.widgetParameter);
-const family = config.widgetFamily || "medium";
-const small = family === "small";
-const large = family === "large";
-const timeSize = small ? 38 : large ? 96 : 62;
+const family = config.widgetFamily || "small";
+const size = family === "small"
+  ? { width: 155, height: 155 }
+  : family === "large"
+    ? { width: 329, height: 345 }
+    : { width: 329, height: 155 };
 
 const widget = new ListWidget();
-widget.backgroundColor = new Color("#F2ECE2");
-widget.setPadding(14, 14, 14, 14);
+widget.setPadding(0, 0, 0, 0);
+widget.backgroundImage = drawClock(size, format(bioMinutes(shiftStart)));
 widget.url = "https://bio-clock.pages.dev/";
 widget.refreshAfterDate = new Date(Date.now() + 60 * 1000);
-
-widget.addSpacer();
-
-const label = widget.addText("生物时间");
-label.font = Font.mediumSystemFont(small ? 9 : 11);
-label.textColor = new Color("#6F6559");
-label.centerAlignText();
-
-widget.addSpacer(small ? 3 : 6);
-
-const time = widget.addText(format(bioMinutes(shiftStart)));
-time.font = serif(timeSize);
-time.textColor = new Color("#1F1C18");
-time.centerAlignText();
-
-widget.addSpacer(small ? 3 : 6);
-
-const dot = widget.addText("•");
-dot.font = Font.systemFont(small ? 9 : 11);
-dot.textColor = new Color("#B65D3D");
-dot.centerAlignText();
-
-widget.addSpacer();
 
 Script.setWidget(widget);
 if (!config.runsInWidget) {
