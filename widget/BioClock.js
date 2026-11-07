@@ -48,8 +48,11 @@ function drawClock(size, time) {
 
   const inset = size.width < 200 ? 9 : 12;
   const perEdge = size.width < 200 ? 18 : 30;
-  const innerW = size.width - inset * 2;
-  const innerH = size.height - inset * 2;
+  const corner = size.width < 200 ? 10 : 16;
+  const xStart = inset + corner;
+  const xEnd = size.width - inset - corner;
+  const yStart = inset + corner;
+  const yEnd = size.height - inset - corner;
 
   function tickMark(x, y, w, h, major) {
     ctx.setFillColor(major ? tickMajor : tick);
@@ -60,8 +63,8 @@ function drawClock(size, time) {
     const major = i % 5 === 0;
     const length = major ? 6 : 3;
     const thickness = major ? 1.8 : 1.2;
-    const fx = inset + ((i + 0.5) / perEdge) * innerW;
-    const fy = inset + ((i + 0.5) / perEdge) * innerH;
+    const fx = xStart + ((i + 0.5) / perEdge) * (xEnd - xStart);
+    const fy = yStart + ((i + 0.5) / perEdge) * (yEnd - yStart);
     tickMark(fx - thickness / 2, inset, thickness, length, major);                       // top
     tickMark(fx - thickness / 2, size.height - inset - length, thickness, length, major); // bottom
     tickMark(inset, fy - thickness / 2, length, thickness, major);                       // left
