@@ -40,38 +40,11 @@ function drawClock(size, time) {
 
   const paper = new Color("#F2ECE2");
   const ink = new Color("#1F1C18");
-  const tick = new Color("#6F6559", 0.34);
-  const tickMajor = new Color("#6F6559", 0.58);
 
   ctx.setFillColor(paper);
   ctx.fillRect(new Rect(0, 0, size.width, size.height));
 
-  const inset = size.width < 200 ? 9 : 12;
-  const perEdge = size.width < 200 ? 18 : 30;
-  const corner = size.width < 200 ? 10 : 16;
-  const xStart = inset + corner;
-  const xEnd = size.width - inset - corner;
-  const yStart = inset + corner;
-  const yEnd = size.height - inset - corner;
-
-  function tickMark(x, y, w, h, major) {
-    ctx.setFillColor(major ? tickMajor : tick);
-    ctx.fillRect(new Rect(x, y, w, h));
-  }
-
-  for (let i = 0; i < perEdge; i++) {
-    const major = i % 5 === 0;
-    const length = major ? 6 : 3;
-    const thickness = major ? 1.8 : 1.2;
-    const fx = xStart + ((i + 0.5) / perEdge) * (xEnd - xStart);
-    const fy = yStart + ((i + 0.5) / perEdge) * (yEnd - yStart);
-    tickMark(fx - thickness / 2, inset, thickness, length, major);                       // top
-    tickMark(fx - thickness / 2, size.height - inset - length, thickness, length, major); // bottom
-    tickMark(inset, fy - thickness / 2, length, thickness, major);                       // left
-    tickMark(size.width - inset - length, fy - thickness / 2, length, thickness, major); // right
-  }
-
-  const fontSize = size.width < 200 ? 52 : size.width > 300 && size.height > 300 ? 112 : 78;
+  const fontSize = size.width < 200 ? 62 : size.width > 300 && size.height > 300 ? 132 : 88;
   ctx.setFont(clockFont(fontSize));
   ctx.setTextColor(ink);
   ctx.setTextAlignedCenter();

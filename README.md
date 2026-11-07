@@ -35,7 +35,7 @@ Open the site in Safari, tap **Share**, then **Add to Home Screen**. The app ope
 
 ### Home Screen widget
 
-iOS does not allow a web app to publish a WidgetKit widget. The included `widget/BioClock.js` is a native-clock-style Scriptable widget: a paper face, perimeter ticks and a large minute-precision time, with no seconds.
+iOS does not allow a web app to publish a WidgetKit widget. The included `widget/BioClock.js` is a native-clock-style Scriptable widget: a clean paper face and a large minute-precision time, with no label, seconds or perimeter ticks.
 
 1. Install **Scriptable** from the App Store.
 2. Create a new script and paste `widget/BioClock.js`.
