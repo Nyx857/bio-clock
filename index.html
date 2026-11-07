@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2ECE2">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="生物钟">
+<meta name="description" content="输入上班时间，生成只属于你的生物时钟。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="生物钟">
+<meta property="og:description" content="输入上班时间，得到只属于你的生物时间。">
+<title>生物钟</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<style>
+:root{
+  --paper:#f2ece2;
+  --ink:#1f1c18;
+  --muted:#6f6559;
+  --accent:#b65d3d;
+  --line:rgba(31,28,24,.16);
+  --pad-top:calc(30px + env(safe-area-inset-top));
+  --pad-bottom:calc(30px + env(safe-area-inset-bottom));
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--paper)}
+body{
+  margin:0;
+  min-height:100dvh;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  padding:var(--pad-top) 22px var(--pad-bottom);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+.eyebrow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.eyebrow::before{content:"";width:22px;height:1px;background:rgba(182,93,61,.42)}
+.clock-screen{
+  position:relative;
+  width:min(100%,760px);
+  min-height:calc(100dvh - var(--pad-top) - var(--pad-bottom));
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.clock-label{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.3em;
+  text-indent:.3em;
+}
+.clock-label::before,
+.clock-label::after{content:"";width:22px;height:1px;background:rgba(182,93,61,.42)}
+.time{
+  margin:18px 0 0;
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:clamp(106px,36vw,210px);
+  font-weight:400;
+  line-height:.88;
+  letter-spacing:-.055em;
+  font-variant-numeric:lining-nums tabular-nums;
+  color:var(--ink);
+}
+.settings{
+  position:fixed;
+  top:calc(12px + env(safe-area-inset-top));
+  right:calc(12px + env(safe-area-inset-right));
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:var(--muted);
+  opacity:.5;
+  -webkit-tap-highlight-color:transparent;
+}
+.settings svg{width:14px;height:14px}
+.setup-screen{
+  width:min(100%,680px);
+  min-height:calc(100dvh - var(--pad-top) - var(--pad-bottom));
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  text-align:left;
+}
+.setup-title{
+  margin:16px 0 0;
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:clamp(40px,13vw,64px);
+  font-weight:400;
+  line-height:1.08;
+  letter-spacing:-.045em;
+  color:var(--ink);
+}
+.setup-copy{
+  max-width:360px;
+  margin:16px 0 0;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.65;
+}
+.time-block{width:100%}
+.shift-input{
+  display:block;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0 0 8px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  color:var(--ink);
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:clamp(78px,27vw,116px);
+  font-weight:400;
+  line-height:1;
+  letter-spacing:-.055em;
+  text-align:left;
+  font-variant-numeric:lining-nums tabular-nums;
+  outline:none;
+}
+.shift-input:focus{border-bottom-color:rgba(182,93,61,.55)}
+.mapping{
+  display:flex;
+  align-items:baseline;
+  gap:9px;
+  margin-top:18px;
+  color:var(--muted);
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:18px;
+  font-variant-numeric:tabular-nums;
+}
+.mapping .arrow{
+  color:var(--accent);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  font-size:12px;
+}
+.mapping-caption{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  opacity:.8;
+}
+.setup-actions{width:100%;display:flex;flex-direction:column;gap:8px}
+.start{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  height:58px;
+  margin:0;
+  padding:0 22px;
+  border:0;
+  border-radius:18px;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.04em;
+  -webkit-tap-highlight-color:transparent;
+}
+.start:disabled{opacity:.28}
+.cancel{
+  align-self:center;
+  padding:8px 12px;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:.1em;
+  opacity:.7;
+}
+.sr-only{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+@media (max-width:380px){
+  body{padding-left:18px;padding-right:18px}
+  .setup-title{font-size:clamp(38px,12.6vw,52px)}
+  .setup-copy{font-size:15px}
+  .shift-input{font-size:clamp(76px,26vw,104px)}
+  .time{font-size:clamp(100px,35vw,170px)}
+}
+@media (max-height:620px){
+  :root{--pad-top:18px;--pad-bottom:18px}
+  .setup-title{margin-top:10px;font-size:40px}
+  .setup-copy{margin-top:8px;font-size:15px}
+  .shift-input{font-size:76px}
+  .mapping{margin-top:12px;font-size:16px}
+  .start{height:52px}
+  .time{font-size:clamp(74px,22vh,130px);margin-top:8px}
+}
+</style>
+</head>
+<body>
+
+<main class="clock-screen" id="clock" hidden>
+  <div class="clock-label">生物时间</div>
+  <h1 class="time" id="bio">--:--</h1>
+  <button class="settings" id="settingsBtn" type="button" aria-label="修改上班时间">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 20h9"/>
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+    </svg>
+  </button>
+</main>
+
+<form class="setup-screen" id="setup" hidden novalidate>
+  <header>
+    <div class="eyebrow">你的生物钟</div>
+    <h1 class="setup-title">你几点上班？</h1>
+    <p class="setup-copy">把上班时间设为生物时间的早上 8 点。</p>
+  </header>
+
+  <div class="time-block">
+    <label class="sr-only" for="shiftInput">上班时间</label>
+    <input class="shift-input" id="shiftInput" type="time" value="16:20" step="60" required>
+    <div class="mapping" aria-live="polite">
+      <span id="mappingShift">16:20</span><span class="arrow">→</span><span>08:00</span>
+    </div>
+    <div class="mapping-caption">上班时间 · 生物早上</div>
+  </div>
+
+  <div class="setup-actions">
+    <button class="start" id="startBtn" type="submit">
+      <span id="startLabel">开始</span><span aria-hidden="true">→</span>
+    </button>
+    <button class="cancel" id="cancelBtn" type="button" hidden>取消</button>
+  </div>
+</form>
+
+<script>
+(() => {
+  'use strict';
+  const KEY = 'bioClock.shiftStart.v1';
+  const BIO_MORNING = 8 * 60;
+  const DEFAULT_SHIFT = 16 * 60 + 20;
+  const $ = (id) => document.getElementById(id);
+  const pad = (n) => String(n).padStart(2, '0');
+  const clock = $('clock');
+  const setup = $('setup');
+  const input = $('shiftInput');
+  const mappingShift = $('mappingShift');
+  const startBtn = $('startBtn');
+  const startLabel = $('startLabel');
+  const cancelBtn = $('cancelBtn');
+  const timeElement = $('bio');
+
+  function format(minutes) {
+    return `${pad(Math.floor(minutes / 60) % 24)}:${pad(minutes % 60)}`;
+  }
+
+  function parse(value) {
+    if (typeof value !== 'string' || !value.includes(':')) return null;
+    const parts = value.split(':').map(Number);
+    if (parts.length < 2 || !Number.isInteger(parts[0]) || !Number.isInteger(parts[1])) return null;
+    if (parts[0] < 0 || parts[0] > 23 || parts[1] < 0 || parts[1] > 59) return null;
+    return parts[0] * 60 + parts[1];
+  }
+
+  function readShift() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw === null) return null;
+      const value = Number(raw);
+      return Number.isInteger(value) && value >= 0 && value < 1440 ? value : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveShift(minutes) {
+    try { localStorage.setItem(KEY, String(minutes)); } catch (error) {}
+  }
+
+  let shiftStart = readShift();
+  let offsetMinutes = shiftStart === null ? 0 : BIO_MORNING - shiftStart;
+  let timer = 0;
+
+  function beijing(ms) {
+    const d = new Date(ms + 8 * 60 * 60 * 1000);
+    return { hour: d.getUTCHours(), minute: d.getUTCMinutes() };
+  }
+
+  function updateMapping() {
+    const minutes = parse(input.value);
+    mappingShift.textContent = minutes === null ? '--:--' : format(minutes);
+    startBtn.disabled = minutes === null;
+    return minutes;
+  }
+
+  function render() {
+    if (shiftStart === null) return;
+    const bio = beijing(Date.now() + offsetMinutes * 60 * 1000);
+    timeElement.textContent = `${pad(bio.hour)}:${pad(bio.minute)}`;
+    window.clearTimeout(timer);
+    timer = window.setTimeout(render, 60000 - (Date.now() % 60000) + 20);
+  }
+
+  function showClock() {
+    setup.hidden = true;
+    clock.hidden = false;
+    window.clearTimeout(timer);
+    render();
+  }
+
+  function openSetup() {
+    window.clearTimeout(timer);
+    input.value = shiftStart === null ? format(DEFAULT_SHIFT) : format(shiftStart);
+    startLabel.textContent = shiftStart === null ? '开始' : '保存';
+    cancelBtn.hidden = shiftStart === null;
+    updateMapping();
+    clock.hidden = true;
+    setup.hidden = false;
+  }
+
+  input.addEventListener('input', updateMapping);
+  input.addEventListener('change', updateMapping);
+
+  setup.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const minutes = parse(input.value);
+    if (minutes === null) return;
+    shiftStart = minutes;
+    offsetMinutes = BIO_MORNING - shiftStart;
+    saveShift(minutes);
+    showClock();
+  });
+
+  $('settingsBtn').addEventListener('click', openSetup);
+
+  cancelBtn.addEventListener('click', () => {
+    if (shiftStart !== null) showClock();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !clock.hidden) {
+      window.clearTimeout(timer);
+      render();
+    }
+  });
+
+  if (new URLSearchParams(location.search).has('setup') || shiftStart === null) {
+    openSetup();
+  } else {
+    showClock();
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
