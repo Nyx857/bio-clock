@@ -42,7 +42,12 @@ iOS does not allow a web app to publish a WidgetKit widget. The included `widget
 3. Add a Scriptable widget to the Home Screen.
 4. Long-press it → Edit Widget → Parameter → `16:20` (your shift start).
 
-iOS controls widget refresh timing; tap the widget to open the app.
+The face is drawn with native text instead of a rasterised image, so it stays
+centred at any widget size and redraws cheaply. iOS still owns the refresh
+schedule (a third-party widget can never tick every minute); the script asks
+for a reload just after each minute boundary, so a granted update is always the
+current minute. To force a redraw now, run the script once in Scriptable, or
+re-pick the widget after long-pressing it. Tapping the widget opens the PWA.
 
 ## Deploy
 

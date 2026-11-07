@@ -1,6 +1,9 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file.
 const DEFAULT_SHIFT = "16:20";
+const PAPER = "#F2ECE2";
+const INK = "#1F1C18";
+const SITE = "https://bio-clock.pages.dev/";
 
 function parseShift(value) {
   const text = String(value || DEFAULT_SHIFT).trim();
@@ -29,47 +32,48 @@ function clockFont(size) {
     const font = Font.name("HelveticaNeue-CondensedBold", size);
     if (font) return font;
   } catch (error) {}
-  return Font.boldSystemFont(size * 0.88);
-}
-
-function drawClock(size, time) {
-  const ctx = new DrawContext();
-  ctx.size = new Size(size.width, size.height);
-  ctx.opaque = true;
-  ctx.respectScreenScale = true;
-
-  const paper = new Color("#F2ECE2");
-  const ink = new Color("#1F1C18");
-
-  ctx.setFillColor(paper);
-  ctx.fillRect(new Rect(0, 0, size.width, size.height));
-
-  const fontSize = size.width < 200 ? 62 : size.width > 300 && size.height > 300 ? 132 : 88;
-  ctx.setFont(clockFont(fontSize));
-  ctx.setTextColor(ink);
-  ctx.setTextAlignedCenter();
-  const textHeight = fontSize * 1.25;
-  ctx.drawTextInRect(time, new Rect(0, (size.height - textHeight) / 2, size.width, textHeight));
-
-  return ctx.getImage();
+  return Font.boldSystemFont(size * 0.92);
 }
 
 const shiftStart = parseShift(args.widgetParameter);
-const family = config.widgetFamily || "small";
-const size = family === "small"
-  ? { width: 155, height: 155 }
-  : family === "large"
-    ? { width: 329, height: 345 }
-    : { width: 329, height: 155 };
+const family = config.widgetFamily || "medium";
+const fontSize = family === "small" ? 64 : family === "large" ? 128 : 88;
 
 const widget = new ListWidget();
+widget.backgroundColor = new Color(PAPER);
 widget.setPadding(0, 0, 0, 0);
-widget.backgroundImage = drawClock(size, format(bioMinutes(shiftStart)));
-widget.url = "https://bio-clock.pages.dev/";
-widget.refreshAfterDate = new Date(Date.now() + 60 * 1000);
+widget.url = SITE;
+
+// Equal flexible spacers above and below centre the run vertically.
+widget.addSpacer();
+
+const row = widget.addStack();
+row.layoutHorizontally();
+row.addSpacer();
+
+// The time is a native text run, so WidgetKit does the layout: it stays
+// optically centred on every device and family, and the snapshot is cheap
+// enough to redraw on each refresh (the old DrawContext raster was the slow
+// part, and it carried its own baseline offset).
+const label = row.addText(format(bioMinutes(shiftStart)));
+label.font = clockFont(fontSize);
+label.textColor = new Color(INK);
+label.lineLimit = 1;
+label.minimumScaleFactor = 0.5;
+label.centerAlignText();
+
+row.addSpacer();
+widget.addSpacer();
+
+// Ask for a reload just after the next minute ticks, so a granted update shows
+// the current minute. iOS still applies its own refresh budget.
+const nextMinute = (Math.floor(Date.now() / 60000) + 1) * 60000;
+widget.refreshAfterDate = new Date(nextMinute + 500);
 
 Script.setWidget(widget);
 if (!config.runsInWidget) {
-  widget.presentMedium();
+  if (family === "large") widget.presentLarge();
+  else if (family === "small") widget.presentSmall();
+  else widget.presentMedium();
 }
 Script.complete();
