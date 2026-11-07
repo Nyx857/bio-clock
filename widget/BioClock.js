@@ -70,6 +70,6 @@ widget.addSpacer();
 
 Script.setWidget(widget);
 if (!config.runsInWidget) {
-  await widget.presentMedium();
+  widget.presentMedium();
 }
 Script.complete();
