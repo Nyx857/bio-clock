@@ -4,7 +4,7 @@ A minimalist paper-toned PWA that turns your actual work start time into a perso
 
 No backend, no tracking, no account. The shift is stored only in your browser.
 
-**Version:** v1.0
+**Version:** v1.1
 
 ## Why
 
@@ -12,7 +12,7 @@ Shift workers often think in two timelines: the real clock and the body's own mo
 
 ## Features
 
-- One-time shift setup, then a single quiet clock
+- A one-time intro, then a one-time shift setup, then a single quiet clock
 - 16:20 shift start maps to 08:00 biological morning by default
 - Installable PWA; works offline after the first load
 - Responsive paper-and-serif design that matches the macOS companion app

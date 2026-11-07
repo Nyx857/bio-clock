@@ -53,6 +53,61 @@ body{
   text-transform:uppercase;
 }
 .eyebrow::before{content:"";width:22px;height:1px;background:rgba(182,93,61,.42)}
+.intro-screen{
+  width:min(100%,680px);
+  min-height:calc(100dvh - var(--pad-top) - var(--pad-bottom));
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  text-align:left;
+}
+.intro-title{
+  margin:16px 0 0;
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:clamp(40px,13vw,64px);
+  font-weight:400;
+  line-height:1.08;
+  letter-spacing:-.045em;
+  color:var(--ink);
+}
+.intro-copy{
+  max-width:360px;
+  margin:16px 0 0;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.65;
+}
+.intro-anchor{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  padding:22px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.intro-anchor-item{text-align:center}
+.intro-anchor-time{
+  font-family:ui-serif,"New York","Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  font-size:clamp(30px,9vw,44px);
+  line-height:1;
+  letter-spacing:-.04em;
+  color:var(--ink);
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.intro-anchor-label{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.16em;
+  text-indent:.16em;
+}
+.intro-anchor-arrow{
+  color:var(--accent);
+  font-size:13px;
+  padding-bottom:18px;
+}
 .clock-screen{
   position:relative;
   width:min(100%,760px);
@@ -214,6 +269,8 @@ body{
 @media (max-width:380px){
   body{padding-left:18px;padding-right:18px}
   .setup-title{font-size:clamp(38px,12.6vw,52px)}
+  .intro-title{font-size:clamp(38px,12.6vw,52px)}
+  .intro-copy{font-size:15px}
   .setup-copy{font-size:15px}
   .shift-input{font-size:clamp(76px,26vw,104px)}
   .time{font-size:clamp(100px,35vw,170px)}
@@ -221,6 +278,10 @@ body{
 @media (max-height:620px){
   :root{--pad-top:18px;--pad-bottom:18px}
   .setup-title{margin-top:10px;font-size:40px}
+  .intro-title{margin-top:10px;font-size:38px}
+  .intro-copy{margin-top:8px;font-size:14px}
+  .intro-anchor{padding:12px 0}
+  .intro-anchor-time{font-size:28px}
   .setup-copy{margin-top:8px;font-size:15px}
   .shift-input{font-size:76px}
   .mapping{margin-top:12px;font-size:16px}
@@ -230,6 +291,30 @@ body{
 </style>
 </head>
 <body>
+
+<main class="intro-screen" id="intro" hidden>
+  <header>
+    <div class="eyebrow">你的生物钟</div>
+    <h1 class="intro-title">把上班时间，<br>当成早上八点。</h1>
+    <p class="intro-copy">设定一次。之后只看一个数字，就知道身体现在相当于几点。</p>
+  </header>
+
+  <div class="intro-anchor">
+    <div class="intro-anchor-item">
+      <div class="intro-anchor-time">16:20</div>
+      <div class="intro-anchor-label">上班时间</div>
+    </div>
+    <div class="intro-anchor-arrow" aria-hidden="true">→</div>
+    <div class="intro-anchor-item">
+      <div class="intro-anchor-time">08:00</div>
+      <div class="intro-anchor-label">生物早上</div>
+    </div>
+  </div>
+
+  <button class="start" id="introBtn" type="button">
+    <span>开始设置</span><span aria-hidden="true">→</span>
+  </button>
+</main>
 
 <main class="clock-screen" id="clock" hidden>
   <div class="clock-label">生物时间</div>
@@ -270,10 +355,12 @@ body{
 (() => {
   'use strict';
   const KEY = 'bioClock.shiftStart.v1';
+  const INTRO_KEY = 'bioClock.introSeen.v1';
   const BIO_MORNING = 8 * 60;
   const DEFAULT_SHIFT = 16 * 60 + 20;
   const $ = (id) => document.getElementById(id);
   const pad = (n) => String(n).padStart(2, '0');
+  const intro = $('intro');
   const clock = $('clock');
   const setup = $('setup');
   const input = $('shiftInput');
@@ -281,6 +368,7 @@ body{
   const startBtn = $('startBtn');
   const startLabel = $('startLabel');
   const cancelBtn = $('cancelBtn');
+  const introBtn = $('introBtn');
   const timeElement = $('bio');
 
   function format(minutes) {
@@ -310,6 +398,14 @@ body{
     try { localStorage.setItem(KEY, String(minutes)); } catch (error) {}
   }
 
+  function introSeen() {
+    try { return localStorage.getItem(INTRO_KEY) === '1'; } catch (error) { return false; }
+  }
+
+  function markIntroSeen() {
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch (error) {}
+  }
+
   let shiftStart = readShift();
   let offsetMinutes = shiftStart === null ? 0 : BIO_MORNING - shiftStart;
   let timer = 0;
@@ -334,7 +430,16 @@ body{
     timer = window.setTimeout(render, 60000 - (Date.now() % 60000) + 20);
   }
 
+  function showIntro() {
+    markIntroSeen();
+    intro.hidden = false;
+    clock.hidden = true;
+    setup.hidden = true;
+    window.clearTimeout(timer);
+  }
+
   function showClock() {
+    intro.hidden = true;
     setup.hidden = true;
     clock.hidden = false;
     window.clearTimeout(timer);
@@ -347,6 +452,7 @@ body{
     startLabel.textContent = shiftStart === null ? '开始' : '保存';
     cancelBtn.hidden = shiftStart === null;
     updateMapping();
+    intro.hidden = true;
     clock.hidden = true;
     setup.hidden = false;
   }
@@ -364,6 +470,8 @@ body{
     showClock();
   });
 
+  introBtn.addEventListener('click', openSetup);
+
   $('settingsBtn').addEventListener('click', openSetup);
 
   cancelBtn.addEventListener('click', () => {
@@ -377,7 +485,10 @@ body{
     }
   });
 
-  if (new URLSearchParams(location.search).has('setup') || shiftStart === null) {
+  const forceSetup = new URLSearchParams(location.search).has('setup');
+  if (shiftStart === null && !introSeen() && !forceSetup) {
+    showIntro();
+  } else if (forceSetup || shiftStart === null) {
     openSetup();
   } else {
     showClock();
