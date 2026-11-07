@@ -4,7 +4,7 @@ A minimalist paper-toned PWA that turns your actual work start time into a perso
 
 No backend, no tracking, no account. The shift is stored only in your browser.
 
-**Version:** v1.1
+**Version:** v1.2
 
 ## Why
 
@@ -17,6 +17,7 @@ Shift workers often think in two timelines: the real clock and the body's own mo
 - Installable PWA; works offline after the first load
 - Responsive paper-and-serif design that matches the macOS companion app
 - Local-only data: no network requests, analytics, or cookies
+- Full-bleed paper icon for iPhone home screen
 
 ## Run locally
 
@@ -25,6 +26,23 @@ python3 -m http.server 8787
 ```
 
 Open `http://localhost:8787/`.
+
+## iPhone
+
+### Add to Home Screen
+
+Open the site in Safari, tap **Share**, then **Add to Home Screen**. The app opens standalone with the paper icon.
+
+### Home Screen widget
+
+iOS does not allow a web app to publish a WidgetKit widget. The included `widget/BioClock.js` is a Scriptable widget:
+
+1. Install **Scriptable** from the App Store.
+2. Create a new script and paste `widget/BioClock.js`.
+3. Add a Scriptable widget to the Home Screen.
+4. Long-press it → Edit Widget → Parameter → `16:20` (your shift start).
+
+iOS controls widget refresh timing; tap the widget to open the app.
 
 ## Deploy
 
@@ -43,4 +61,5 @@ manifest.json     PWA manifest
 sw.js             Offline cache
 icon-*.png        App icons
 _headers          Cloudflare Pages cache policy
+widget/BioClock.js  Optional iOS Scriptable home-screen widget
 ```
