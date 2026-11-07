@@ -72,7 +72,8 @@ function drawClock(size, time) {
   ctx.setFont(clockFont(fontSize));
   ctx.setTextColor(ink);
   ctx.setTextAlignedCenter();
-  ctx.drawTextInRect(time, new Rect(0, 0, size.width, size.height));
+  const textHeight = fontSize * 1.25;
+  ctx.drawTextInRect(time, new Rect(0, (size.height - textHeight) / 2, size.width, textHeight));
 
   return ctx.getImage();
 }
